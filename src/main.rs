@@ -1,7 +1,7 @@
 /*
  ** Copyright (C) 2020 KunoiSayami
  **
- ** This file is part of File-duplicate-checker and is released under
+ ** This file is part of teamspeak-poker and is released under
  ** the AGPL v3 License: https://www.gnu.org/licenses/agpl-3.0.txt
  **
  ** This program is free software: you can redistribute it and/or modify
@@ -20,6 +20,9 @@
 
 use telnet::{Telnet, TelnetEvent};
 use configparser::ini::Ini;
+use std::thread;
+use std::time::Duration;
+
 
 fn main() {
     let mut config = Ini::new();
@@ -29,16 +32,14 @@ fn main() {
         .unwrap_or(25639);
     let auth_key = config.get("telnet", "key")
         .expect("Unable get authorized key");
-    let mut telnet = Telnet::connect(("127.0.0.1", port as u16), 256)
+    let mut telnet = Telnet::connect(("127.0.0.1", port as u16), 512)
         .expect("Couldn't connect to the server...");
 
     loop {
-        let event = telnet.read_nonblocking().expect("Read error");
+        let event = telnet.read().expect("Read error");
 
         match event {
             TelnetEvent::Data(buffer) => {
-                // Debug: print the data buffer
-                //println!("{:?}", buffer);
                 let s = match String::from_utf8(Vec::from(buffer)) {
                     Ok(s) => s,
                     Err(_e) => {
@@ -51,7 +52,6 @@ fn main() {
                     telnet.write(format!("auth apikey={}", auth_key).as_bytes())
                         .expect("Read error");
                 }
-                // process the data buffer
             },
             _ => {}
         }
