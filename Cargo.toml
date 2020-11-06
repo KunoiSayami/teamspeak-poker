@@ -1,0 +1,9 @@
+[package]
+name = "teamspeak-poker"
+version = "0.1.0"
+authors = ["KunoiSayami <46131041+KunoiSayami@users.noreply.github.com>"]
+edition = "2018"
+
+[dependencies]
+telnet = "0.1.4"
+configparser = "1.0.0"
