@@ -17,7 +17,6 @@
  ** You should have received a copy of the GNU Affero General Public License
  ** along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 use telnet::{Telnet, TelnetEvent};
 use configparser::ini::Ini;
 use std::thread;
@@ -52,8 +51,12 @@ impl Client {
         }
     }
 
-    fn print(&self) {
+    /*fn print(&self) {
         println!("client id: {}, nickname: {}", self.clid, self.client_nickname)
+    }*/
+
+    fn to_string(&self) -> String {
+        format!("client id: {}, nickname: {}", self.clid, self.client_nickname)
     }
 }
 
@@ -74,10 +77,15 @@ impl Clients {
         };
         c
     }
-    fn print(&self) {
+
+    /*fn print(&self) {
         for client in &self.items {
             client.print()
         }
+    }*/
+
+    fn to_string(&self) -> String {
+        (&self.items).into_iter().map(|x| x.to_string()).collect::<Vec<String>>().join("\n")
     }
 }
 
@@ -97,9 +105,7 @@ fn main() {
     let mut confirm_login = false;
     let mut select_client = false;
     let mut requested_list = false;
-    let clients;
-
-    loop {
+    let clients= loop {
         let event = telnet.read().expect("Read error");
 
         if let TelnetEvent::Data(buffer) = event {
@@ -110,8 +116,7 @@ fn main() {
                     continue
                 }
             };
-            //print!("{}", s);
-            dbg!(s.clone());
+
             if !login && s.contains(r#"Use the "auth" command to authenticate yourself."#) {
                 telnet.write(format!("auth apikey={}\n\r", api_key).as_bytes())
                     .expect("Read error");
@@ -129,16 +134,13 @@ fn main() {
                         .expect("Read error");
                     requested_list = true;
                 } else if s.contains("client_database_id") {
-                    clients = Clients::new(s);
-                    break;
+                    break Clients::new(s);
                 }
             }
         }
-    }
+    };
 
-    println!("Client list:");
-    clients.print();
-    print!("Please input which client you want to poke: ");
+    print!("Client list:\n {}\n Please input which client you want to poke: ", clients.to_string());
     stdout().flush().unwrap();
     let clid ='_outside_loop: loop {
         let mut input = String::new();
