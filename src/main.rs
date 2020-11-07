@@ -22,6 +22,7 @@ use telnet::{Telnet, TelnetEvent};
 use configparser::ini::Ini;
 use std::thread;
 use std::time::Duration;
+use std::io::{stdout, Write};
 
 fn get_value<'a>(option: &'a [&str], index: usize) -> &'a str {
     option.get(index).unwrap().split('=').last().unwrap()
@@ -137,28 +138,33 @@ fn main() {
 
     println!("Client list:");
     clients.print();
-    println!("Please input which client you want to poke: ");
-    let mut select_user: Option<&Client>;
-    '_outside_loop: loop {
+    print!("Please input which client you want to poke: ");
+    stdout().flush().unwrap();
+    let clid ='_outside_loop: loop {
         let mut input = String::new();
         std::io::stdin().read_line(&mut input)
             .unwrap();
         let clid: i32 = match input.trim().parse::<i32>() {
             Ok(id) => id,
             Err(e) => {
-                println!("Please input a valid number, {:?}: ", e);
+                print!("Please input a valid number, {:?}: ", e);
+                stdout().flush().unwrap();
                 continue
             }
         };
+        if clid <= 0 {
+            println!("Exited");
+            return
+        }
         for client in &clients.items {
             if client.clid == clid {
-                select_user = Some(client);
-                break '_outside_loop;
+                break '_outside_loop client.clid;
             }
         }
-        println!("Id not found, please try again");
-    }
-    let clid = select_user.expect("Couldn't found user").clid;
+        print!("Id not found, please try again: ");
+        stdout().flush().unwrap();
+    };
+
     println!("Set clid to {}", clid);
     for _times in 0..15 {
         telnet.write(format!("clientpoke msg= clid={}\n\r", clid).as_bytes())
