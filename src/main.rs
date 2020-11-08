@@ -22,6 +22,7 @@ use configparser::ini::Ini;
 use std::thread;
 use std::time::Duration;
 use std::io::{stdout, Write};
+use std::fmt;
 
 fn get_value<'a>(option: &'a [&str], index: usize) -> &'a str {
     option.get(index).unwrap().split('=').last().unwrap()
@@ -54,9 +55,11 @@ impl Client {
     /*fn print(&self) {
         println!("client id: {}, nickname: {}", self.clid, self.client_nickname)
     }*/
+}
 
-    fn to_string(&self) -> String {
-        format!("client id: {}, nickname: {}", self.clid, self.client_nickname)
+impl fmt::Display for Client {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "client id: {}, nickname: {}", self.clid, self.client_nickname)
     }
 }
 
@@ -84,11 +87,19 @@ impl Clients {
         }
     }*/
 
-    fn to_string(&self) -> String {
-        (&self.items).into_iter().map(|x| x.to_string()).collect::<Vec<String>>().join("\n")
-    }
 }
 
+impl fmt::Display for Clients {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", (&self.items)
+            .iter()
+            .map(|x|
+                x.to_string())
+            .collect::<Vec<String>>()
+            .join("\n")
+        )
+    }
+}
 
 fn main() {
     let mut config = Ini::new();
@@ -105,7 +116,7 @@ fn main() {
     let mut confirm_login = false;
     let mut select_client = false;
     let mut requested_list = false;
-    let clients= loop {
+    let clients = loop {
         let event = telnet.read().expect("Read error");
 
         if let TelnetEvent::Data(buffer) = event {
@@ -119,11 +130,11 @@ fn main() {
 
             if !login && s.contains(r#"Use the "auth" command to authenticate yourself."#) {
                 telnet.write(format!("auth apikey={}\n\r", api_key).as_bytes())
-                    .expect("Read error");
+                    .expect("Write error");
                 login = true;
             } else if !confirm_login && s.contains("error id=0 msg=ok") {
                 telnet.write("use\n\r".as_bytes())
-                    .expect("Read error");
+                    .expect("Write error");
                 confirm_login = true;
             } else if !select_client && s.contains("selected schandlerid=1") {
                 select_client = true;
@@ -131,7 +142,7 @@ fn main() {
             if select_client {
                 if !requested_list {
                     telnet.write("clientlist\n\r".as_bytes())
-                        .expect("Read error");
+                        .expect("Write error");
                     requested_list = true;
                 } else if s.contains("client_database_id") {
                     break Clients::new(s);
@@ -140,9 +151,9 @@ fn main() {
         }
     };
 
-    print!("Client list:\n {}\n Please input which client you want to poke: ", clients.to_string());
+    print!("Client list:\n{}\nPlease input which client you want to poke: ", clients.to_string());
     stdout().flush().unwrap();
-    let clid ='_outside_loop: loop {
+    let clid = '_outside_loop: loop {
         let mut input = String::new();
         std::io::stdin().read_line(&mut input)
             .unwrap();
@@ -167,8 +178,35 @@ fn main() {
         stdout().flush().unwrap();
     };
 
-    println!("Set clid to {}", clid);
-    for _times in 0..15 {
+    print!("Set clid to {}\nPlease input poke times: ", clid);
+    stdout().flush().unwrap();
+    let times = loop {
+        let mut input = String::new();
+        std::io::stdin().read_line(&mut input)
+            .unwrap();
+        let times = match input.trim().parse::<i32>() {
+            Ok(t) => t,
+            Err(e) => {
+                if !input.eq("") {
+                    print!("Please input a valid number, {:?}: ", e);
+                    stdout().flush().unwrap();
+                    continue
+                }
+                3
+            }
+        };
+        if times < 1 {
+            println!("Exited");
+            return
+        }
+        if times > 8 {
+            print!("Too large number, please try again: ");
+            stdout().flush().unwrap();
+        }
+        break times
+    };
+
+    for _times in 0..times {
         telnet.write(format!("clientpoke msg= clid={}\n\r", clid).as_bytes())
             .expect("Write error");
         thread::sleep(Duration::from_millis(1100));

@@ -1,5 +1,11 @@
 # Teamspeak poker
 
+## Build
+
+```
+cargo build --release
+```
+
 ## License
 
 [![](https://www.gnu.org/graphics/agplv3-155x51.png)](https://www.gnu.org/licenses/agpl-3.0.txt)
