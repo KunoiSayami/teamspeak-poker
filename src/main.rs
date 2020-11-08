@@ -51,10 +51,6 @@ impl Client {
             client_type: get_value(&options, 4).parse().unwrap()
         }
     }
-
-    /*fn print(&self) {
-        println!("client id: {}, nickname: {}", self.clid, self.client_nickname)
-    }*/
 }
 
 impl fmt::Display for Client {
@@ -80,13 +76,6 @@ impl Clients {
         };
         c
     }
-
-    /*fn print(&self) {
-        for client in &self.items {
-            client.print()
-        }
-    }*/
-
 }
 
 impl fmt::Display for Clients {
@@ -178,7 +167,7 @@ fn main() {
         stdout().flush().unwrap();
     };
 
-    print!("Set clid to {}\nPlease input poke times: ", clid);
+    print!("Set clid to {}\nPlease input poke times [3]: ", clid);
     stdout().flush().unwrap();
     let times = loop {
         let mut input = String::new();
@@ -187,7 +176,7 @@ fn main() {
         let times = match input.trim().parse::<i32>() {
             Ok(t) => t,
             Err(e) => {
-                if !input.eq("") {
+                if !input.trim().len() == 0 {
                     print!("Please input a valid number, {:?}: ", e);
                     stdout().flush().unwrap();
                     continue
@@ -199,9 +188,10 @@ fn main() {
             println!("Exited");
             return
         }
-        if times > 8 {
+        if times > 20 {
             print!("Too large number, please try again: ");
             stdout().flush().unwrap();
+            continue
         }
         break times
     };
@@ -209,6 +199,9 @@ fn main() {
     for _times in 0..times {
         telnet.write(format!("clientpoke msg= clid={}\n\r", clid).as_bytes())
             .expect("Write error");
-        thread::sleep(Duration::from_millis(1100));
+        println!("Processing: {}/{}", _times + 1, times);
+        if _times != times -1 {
+            thread::sleep(Duration::from_millis(1100));
+        }
     }
 }
