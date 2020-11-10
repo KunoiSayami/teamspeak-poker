@@ -1,9 +1,22 @@
 # Teamspeak poker
 
+**Warning: Send too many poke may let you get banned**
+
+## Requirement
+
+* Teamspeak ClientQuery plugin
+* ClientQuery plugin api key
+
 ## Build
 
-```
+```shell script
 cargo build --release
+```
+
+## Run
+
+```shell script
+cargo run --release
 ```
 
 ## License

@@ -199,9 +199,11 @@ fn main() {
     for _times in 0..times {
         telnet.write(format!("clientpoke msg= clid={}\n\r", clid).as_bytes())
             .expect("Write error");
-        println!("Processing: {}/{}", _times + 1, times);
+        print!("\rProcessing: {}/{}", _times + 1, times);
+        stdout().flush().unwrap();
         if _times != times -1 {
             thread::sleep(Duration::from_millis(1100));
         }
     }
+    println!();
 }
