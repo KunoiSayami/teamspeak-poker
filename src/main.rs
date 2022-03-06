@@ -1,5 +1,5 @@
 /*
- ** Copyright (C) 2020 KunoiSayami
+ ** Copyright (C) 2020-2022 KunoiSayami
  **
  ** This file is part of teamspeak-poker and is released under
  ** the AGPL v3 License: https://www.gnu.org/licenses/agpl-3.0.txt
@@ -28,6 +28,7 @@ fn get_value<'a>(option: &'a [&str], index: usize) -> &'a str {
     option.get(index).unwrap().split('=').last().unwrap()
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Client {
     clid: i32,
